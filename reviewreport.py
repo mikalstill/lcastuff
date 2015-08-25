@@ -17,6 +17,7 @@ for row in csv.DictReader(open('lca2016_reviews.csv'), delimiter=','):
     reviews[row['proposal_id']].append(row)
 
 scores = {}
+contentious = []
 likely_accept = []
 likely_reject = []
 
@@ -30,18 +31,16 @@ for proposal_id in proposals:
         count = 0
         for review in reviews[proposal_id]:
             score = review['score']
-            if len(score) == 0:
-                score = '*'
-            else:
+            if len(score) > 0:
                 int_score = int(score)
                 total += int_score
                 count += 1
                 int_scores.append(int_score)
 
-            score_details.append('    %2d ... %s %s'
-                                 %(int_score,
-                                   review['reviewer_firstname'],
-                                   review['reviewer_lastname']))
+                score_details.append('    %2d ... %s %s'
+                                     %(int_score,
+                                       review['reviewer_firstname'],
+                                       review['reviewer_lastname']))
 
         score_details.append('    --------------------------------')
         score = float(total) / float(count)
@@ -50,7 +49,7 @@ for proposal_id in proposals:
         s = '    '
         int_scores.sort()
         median = len(int_scores) / 2
-        count = 0
+        count = 1
         for int_score in int_scores:
             s += '%d ' % int_score
             if count == median:
@@ -59,11 +58,14 @@ for proposal_id in proposals:
         score_details.append(s)
 
         scores[proposal_id] = score_details
-        
-        if score > 1.50:
+
+        if min(int_scores) < 0 and max(int_scores) == 2:
+            contentious.append(proposal_id)
+
+        elif score > 1.00:
             likely_accept.append(proposal_id)
 
-        if score < 0.00:
+        elif score < 0.00:
             new_total = 0
             for s in int_scores[2:]:
                 new_total += s
@@ -71,7 +73,8 @@ for proposal_id in proposals:
             if new_score < 0.00:
                 likely_reject.append(proposal_id)
 
-for n, p in [("Likely accept", likely_accept),
+for n, p in [("Contentious", contentious),
+             ("Likely accept", likely_accept),
              ("Likely reject", likely_reject)]:
     print '=' * 80
     print n
@@ -82,6 +85,8 @@ for n, p in [("Likely accept", likely_accept),
                                  proposals[proposal_id]['title'],
                                  proposals[proposal_id]['firstname'],
                                  proposals[proposal_id]['lastname'])
+        print ('    http://linux.conf.au/proposal/%s (%s)'
+               %(proposal_id, proposals[proposal_id]['type']))
         print '\n'.join(scores[proposal_id][-2:])
         print
 
