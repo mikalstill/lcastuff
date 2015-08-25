@@ -8,13 +8,13 @@ import sys
 import time
 
 proposals = {}
-for row in csv.DictReader(open('allproposals.csv'), delimiter=';'):
+for row in csv.DictReader(open('lca2016_proposals.csv'), delimiter=','):
     proposals[row['proposal_id']] = row
 
 reviews = {}
-for row in csv.DictReader(open('allreviews.csv'), delimiter=';'):
-    reviews.setdefault(row['id'], [])
-    reviews[row['id']].append(row)
+for row in csv.DictReader(open('lca2016_reviews.csv'), delimiter=','):
+    reviews.setdefault(row['proposal_id'], [])
+    reviews[row['proposal_id']].append(row)
 
 scores = {}
 likely_accept = []
@@ -38,9 +38,10 @@ for proposal_id in proposals:
                 count += 1
                 int_scores.append(int_score)
 
-            score_details.append('    %2d ... %s %s' %(int_score,
-                                                       review['firstname'],
-                                                       review['lastname']))
+            score_details.append('    %2d ... %s %s'
+                                 %(int_score,
+                                   review['reviewer_firstname'],
+                                   review['reviewer_lastname']))
 
         score_details.append('    --------------------------------')
         score = float(total) / float(count)
